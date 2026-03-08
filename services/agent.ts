@@ -10,9 +10,21 @@ export const agentService = {
 
     injectToolsToPrompt: (systemPrompt: ChatMessage): ChatMessage => {
         const registry = mcpService.getAllTools();
-        if (registry.length === 0) return systemPrompt; // No hay tools disponibles
 
         let toolsInstruction = `\n\n=== HERRAMIENTAS DISPONIBLES ===\nTienes acceso a las siguientes herramientas mediante el sistema Model Context Protocol (MCP).\n`;
+
+        // 1. Herramientas de Automatización Físisica (Internas)
+        toolsInstruction += `
+Herramienta: ahk_run
+Servidor: automation
+Descripción: Ejecuta código AutoHotkey v2 para controlar el ratón, teclado y ventanas.
+Parámetros (JSON Schema): {"type":"object","properties":{"code":{"type":"string","description":"Código AHK v2 (ej: MsgBox('Bot'), Click(500,500), SendText('Hola'))"}},"required":["code"]}
+
+Herramienta: screenshot
+Servidor: automation
+Descripción: Captura la pantalla actual del PC del usuario para que puedas ver el estado visual.
+Parámetros (JSON Schema): {"type":"object","properties":{}}
+`;
 
         for (const { serverName, tool } of registry) {
             toolsInstruction += `\nHerramienta: ${tool.name}\n`;

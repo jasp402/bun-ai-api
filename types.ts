@@ -97,6 +97,7 @@ export interface ProjectRecord {
   dev_command: string;     // Comando para levantar el servidor dev
   agent_command: string;   // Comando para el agente IA (gemini, claude, codex)
   is_active: boolean;      // Si está seleccionado como proyecto activo
+  mirror_mode: boolean;    // Si está activado el modo espejo (logs duales)
   status: 'idle' | 'running' | 'error';
   created_at: string;
 }

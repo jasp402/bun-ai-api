@@ -134,10 +134,28 @@ export function initializeDatabase() {
       dev_command TEXT DEFAULT '',
       agent_command TEXT DEFAULT '',
       is_active BOOLEAN DEFAULT 0,
+      mirror_mode BOOLEAN DEFAULT 0,
       status TEXT DEFAULT 'idle',
       created_at TEXT
     );
   `).run();
+
+  // MIGRACIÓN: Añadir mirror_mode si no existe (para DBs ya creadas)
+  try {
+    db.query("ALTER TABLE projects ADD COLUMN mirror_mode BOOLEAN DEFAULT 0").run();
+    console.log("[Database] Columna mirror_mode añadida.");
+  } catch (e) {
+    // Si ya existe ignorar
+  }
+
+
+  // MIGRACIÓN/LIMPIEZA: Normalizar rutas malformadas (ej: 'd:path' -> 'd:\path')
+  const malformed = db.query("SELECT id, path FROM projects WHERE path LIKE '_:%' AND path NOT LIKE '_:/%'").all() as any[];
+  for (const p of malformed) {
+    const fixedPath = p.path.replace(/^([a-zA-Z]):/, '$1:/');
+    db.query("UPDATE projects SET path = $fixed WHERE id = $id").run({ $fixed: fixedPath, $id: p.id });
+    console.log(`[Database] Normalized malformed path: ${p.path} -> ${fixedPath}`);
+  }
 
   // Processes Table
   db.query(`
@@ -224,6 +242,11 @@ export const dbService = {
     db.query(`
       INSERT INTO projects (id, name, path, stack, dev_command, agent_command, is_active, status, created_at)
       VALUES ($id, $name, $path, $stack, $devCommand, $agentCommand, 0, 'idle', $now)
+      ON CONFLICT(name) DO UPDATE SET
+        path = excluded.path,
+        stack = excluded.stack,
+        dev_command = excluded.dev_command,
+        agent_command = excluded.agent_command
     `).run({
       $id: crypto.randomUUID?.() || Math.random().toString(),
       $name: name,
@@ -256,6 +279,10 @@ export const dbService = {
   deleteProject: (name: string): boolean => {
     const result = db.query("DELETE FROM projects WHERE name = $name").run({ $name: name });
     return result.changes > 0;
+  },
+
+  setMirrorMode: (projectId: string, enabled: boolean) => {
+    db.query("UPDATE projects SET mirror_mode = $val WHERE id = $id").run({ $val: enabled ? 1 : 0, $id: projectId });
   },
 
   // =============== CRUD DE PROCESOS ===============
@@ -295,6 +322,10 @@ export const dbService = {
 
   getRunningProcesses: (): any[] => {
     return db.query("SELECT p.*, pr.name as project_name FROM processes p LEFT JOIN projects pr ON p.project_id = pr.id WHERE p.status = 'running'").all();
+  },
+
+  getProcessById: (processId: string): any | null => {
+    return db.query("SELECT * FROM processes WHERE id = $id").get({ $id: processId });
   },
 
   deleteProcess: (processId: string) => {
