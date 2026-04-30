@@ -173,6 +173,17 @@ export function initializeDatabase() {
     );
   `).run();
 
+  // =============== PERFORMANCE INDEXES ===============
+
+  db.query("CREATE INDEX IF NOT EXISTS idx_users_id_channel ON users(id, channel);").run();
+  db.query("CREATE INDEX IF NOT EXISTS idx_conversations_user_channel ON conversations(user_id, channel);").run();
+  db.query("CREATE INDEX IF NOT EXISTS idx_messages_conversation_timestamp ON messages(conversation_id, timestamp);").run();
+  db.query("CREATE INDEX IF NOT EXISTS idx_messages_is_analyzed_timestamp ON messages(is_analyzed, timestamp);").run();
+  db.query("CREATE INDEX IF NOT EXISTS idx_memory_rules_type_is_active ON memory_rules(type, is_active);").run();
+  db.query("CREATE INDEX IF NOT EXISTS idx_reminders_is_executed_execute_at ON reminders(is_executed, execute_at);").run();
+  db.query("CREATE INDEX IF NOT EXISTS idx_processes_project_id ON processes(project_id);").run();
+  db.query("CREATE INDEX IF NOT EXISTS idx_processes_status ON processes(status);").run();
+
   console.log("Database initialized.");
 }
 
