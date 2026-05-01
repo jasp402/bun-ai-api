@@ -106,6 +106,17 @@ async function handleMessage(message: any) {
     const userIdStr = message.from.id.toString();
     const userName = message.from.first_name || message.from.username || null;
 
+    // Security: Check if user is allowed to interact with the bot
+    const allowedUsersStr = process.env.ALLOWED_TELEGRAM_USERS;
+    if (allowedUsersStr && allowedUsersStr.trim().length > 0) {
+        const allowedUsers = allowedUsersStr.split(',').map(u => u.trim());
+        if (!allowedUsers.includes(userIdStr)) {
+            console.warn(`[Security] Unauthorized access attempt from user ${userName || userIdStr} (${userIdStr})`);
+            await sendMessage(chatId, "⛔ Unauthorized: You do not have permission to interact with this bot.");
+            return;
+        }
+    }
+
     // Gestión de Memoria
     let user = memoryService.getUser(userIdStr, 'telegram');
     if (!user) {
