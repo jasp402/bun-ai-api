@@ -1,0 +1,3 @@
+## 2024-05-01 - Missing indexes on cron job tables
+**Learning:** The application uses `node-cron` to execute background queries on SQLite tables (`reminders`, `messages`) every minute/hour. These tables are unbounded. However, there are no indexes on the columns being queried (e.g. `is_analyzed`, `is_executed`, `execute_at`), meaning every execution of the cron jobs will perform full-table scans. In SQLite, this degrades performance over time as the database grows, potentially blocking other queries.
+**Action:** When inspecting frequent or periodic background jobs interacting with the database, always verify that queries are covered by appropriate indexes, specifically for the filter conditions (`WHERE is_analyzed = 0`, etc.) and sorting criteria.
