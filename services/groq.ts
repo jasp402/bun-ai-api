@@ -30,7 +30,10 @@ export const groqFactory = {
 
       async chat(messages: ChatMessage[]) {
         const stream = await groq.chat.completions.create({
-          messages: messages.map(m => ({ role: m.role as any, content: m.content })),
+          messages: messages.map(m => ({
+            role: m.role as any,
+            content: typeof m.content === 'string' ? m.content : m.content.map(p => p.type === 'text' ? p.text : '').join('\n')
+          })),
           model: this.model,
           temperature: 0.6,
           max_completion_tokens: 4096,

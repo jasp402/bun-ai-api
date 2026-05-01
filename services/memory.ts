@@ -18,14 +18,34 @@ export const memoryService = {
         return query.get({ $id: userId, $channel: channel }) as UserRecord | null;
     },
 
+    setUserBusy: (userId: string, untilIso: string | null) => {
+        db.query("UPDATE users SET busy_until = $until WHERE id = $id").run({ $until: untilIso, $id: userId });
+    },
+
+    setUserQuietHours: (userId: string, start: string, end: string) => {
+        db.query("UPDATE users SET quiet_hours_start = $start, quiet_hours_end = $end WHERE id = $id").run({
+            $start: start,
+            $end: end,
+            $id: userId
+        });
+    },
+
+    setUserNudgeDelay: (userId: string, hours: number) => {
+        db.query("UPDATE users SET nudge_delay_hours = $hours WHERE id = $id").run({ $hours: hours, $id: userId });
+    },
+
     createUser: (userId: string, name: string | null, channel: string): UserRecord => {
         const user = {
             id: userId,
             name,
             channel,
+            busy_until: null,
+            quiet_hours_start: '22:00',
+            quiet_hours_end: '09:00',
+            nudge_delay_hours: 12,
             created_at: new Date().toISOString()
         };
-        db.query("INSERT INTO users (id, name, channel, created_at) VALUES ($id, $name, $channel, $createdAt)").run({
+        db.query("INSERT INTO users (id, name, channel, created_at, nudge_delay_hours) VALUES ($id, $name, $channel, $createdAt, 12)").run({
             $id: user.id,
             $name: user.name,
             $channel: user.channel,
@@ -94,8 +114,28 @@ export const memoryService = {
     },
 
     // === REGLAS Y PERSONALIDAD ===
-    getSystemPromptAndRules: (): ChatMessage[] => {
-        // Buscar si hay un prompt custom 
+    getSystemPromptAndRules: (userId?: string, userName?: string): ChatMessage[] => {
+        // 1. Obtener User Data si existe
+        let userContext = "";
+        if (userId) {
+            const userQuery = db.query("SELECT * FROM users WHERE id = $id LIMIT 1");
+            const user = userQuery.get({ $id: userId }) as any;
+
+            // Buscar datos específicos en memory_rules (tipo user_data)
+            const userDataQuery = db.query("SELECT content FROM memory_rules WHERE type = 'user_data' AND is_active = 1");
+            const data = userDataQuery.all() as { content: string }[];
+
+            if (user || userName || data.length > 0) {
+                userContext = `\n\n=== CONTEXTO DEL USUARIO ===\n`;
+                userContext += `Estás hablando con: ${user?.name || userName || 'Usuario'}\n`;
+                if (data.length > 0) {
+                    userContext += `Información conocida:\n` + data.map(d => "- " + d.content).join("\n");
+                }
+                userContext += `\n============================\n`;
+            }
+        }
+
+        // 2. Buscar si hay un prompt custom 
         const promptQuery = db.query("SELECT content FROM memory_rules WHERE type = 'system_prompt' AND is_active = 1 LIMIT 1");
         const customPrompt = promptQuery.get() as { content: string } | null;
 
@@ -104,15 +144,17 @@ export const memoryService = {
             baseContent = customPrompt.content;
         }
 
-        // Agregar reglas activas
+        // 3. Agregar reglas activas y lecciones aprendidas
         const rulesQuery = db.query("SELECT content FROM memory_rules WHERE type = 'learned_rule' AND is_active = 1");
         const rules = rulesQuery.all() as { content: string }[];
 
         if (rules.length > 0) {
-            baseContent += "\n\nAdicionalmente, has aprendido las siguientes reglas sobre el usuario o el sistema:\n" + rules.map(r => "- " + r.content).join("\n");
+            baseContent += "\n\n=== REGLAS DE COMPORTAMIENTO Y LECCIONES APRENDIDAS ===\n" +
+                "IMPORTANTE: Las siguientes son reglas que has aprendido para no repetir errores y mejorar tu servicio:\n" +
+                rules.map(r => "- " + r.content).join("\n");
         }
 
-        return [{ role: 'system', content: baseContent }];
+        return [{ role: 'system', content: userContext + baseContent }];
     },
 
     saveCustomSystemPrompt: (content: string) => {
@@ -158,6 +200,7 @@ export const memoryService = {
 
     // Callback setter for reminder execution (to be injected by index.ts/telegram.ts)
     onReminderExecute: null as ((channel: string, userId: string, message: string) => void) | null,
+    onProactiveNudge: null as ((channel: string, userId: string, message: string) => void) | null,
 };
 
 // === CRON JOBS ===
@@ -212,18 +255,29 @@ export function initMemoryCrons() {
       Eres un módulo de análisis de memoria en background de la IA.
       Tu tarea es analizar el siguiente historial reciente de mensajes entre usuarios y tú (la IA).
       Debes identificar:
-      1. Si se te ha ordenado cambiar la forma fundamental en que actúas (generar nuevo SYSTEM_PROMPT).
-      2. Si aprendiste datos vitales o preferencias del usuario (generar learned_rule).
-      3. IMPORTANTE: Si un usuario te agendó/pidió que le recuerdes algo cronometrado (generar reminder). \n 
-      Responde EXCLUSIVAMENTE en formato JSON con la siguiente estructura (si no hay nada, array vacío en cada uno):
+      1. Datos Vitales del Usuario: Nombre, Profesión/Trabajo, Intereses, Gustos personales.
+      2. Contexto de Proyectos: Cuáles son sus proyectos favoritos o en los que más trabaja.
+      3. Lecciones Aprendidas: Errores que la IA cometió y que el usuario corrigió, o instrucciones explícitas sobre "cómo NO hacer las cosas".
+      4. SIEMPRE verifica si se te ha ordenado cambiar la forma fundamental en que actúas (generar nuevo SYSTEM_PROMPT).
+      5. IMPORTANTE: Si un usuario te agendó/pidió que le recuerdes algo cronometrado (generar reminder).
+      6. DISPONIBILIDAD: Detecta si el usuario indica que estará ocupado, de viaje o no disponible hasta cierta fecha o periodo.
+
+      Responde EXCLUSIVAMENTE en formato JSON con la siguiente estructura (si no hay nada, null o array vacío):
       {
         "newSystemPrompt": "string o null si no cambió",
-        "learnedRules": ["regla 1", "regla 2"],
+        "userData": {
+           "name": "Nombre si lo detectas",
+           "profession": "Trabajo/Rol",
+           "interests": ["interés 1", "interés 2"],
+           "favoriteProjects": ["proyecto 1"],
+           "busyUntil": "ISO Date si el usuario indica que estará ocupado o no disponible hasta cierta fecha/hora, de lo contrario null"
+        },
+        "learnedRules": ["Regla de comportamiento o lección aprendida para no repetir errores"],
         "reminders": [
           {
-            "userId": "extraído del mensaje de la IA o el contexto si es posible",
-            "message": "Mensaje exacto a recordarle al usuario",
-            "executeAtIso": "Fecha ISO-8601 ej. 2026-03-07T14:00:00Z"
+            "userId": "ID del usuario",
+            "message": "Mensaje exacto a recordarle",
+            "executeAtIso": "ISO Date"
           }
         ]
       }
@@ -231,7 +285,8 @@ export function initMemoryCrons() {
       Historial a analizar:
       ${JSON.stringify(msgs.map(m => `[${m.role}] ${m.content}`))}
       
-      La fecha/hora actual es: ${new Date().toISOString()}. Úsala como base para los recordatorios como 'dentro de 10 minutos' o 'mañana'.
+      IMPORTANTE: Los datos en "userData" deben ser persistentes y acumulativos.
+      La fecha/hora actual es: ${new Date().toISOString()}.
     `;
 
         try {
@@ -252,11 +307,37 @@ export function initMemoryCrons() {
                 return; // Ignoramos este ciclo, se retomará en la siguiente hora con más o los mismos mensajes.
             }
 
-            if (parsed.newSystemPrompt) {
+            const firstMsg = msgs[0];
+            const sourceConversation = firstMsg
+                ? db.query("SELECT user_id, channel FROM conversations WHERE id = $id").get({ $id: firstMsg.conversation_id }) as { user_id: string, channel: string } | null
+                : null;
+            const isWhatsAppConversation = sourceConversation?.channel === 'whatsapp';
+
+            if (parsed.newSystemPrompt && !isWhatsAppConversation) {
                 console.log("[Cron Memory] Actualizando System Prompt base");
                 memoryService.saveCustomSystemPrompt(parsed.newSystemPrompt);
             }
-            if (parsed.learnedRules && Array.isArray(parsed.learnedRules)) {
+            if (parsed.userData) {
+                const { name, profession, interests, favoriteProjects, busyUntil } = parsed.userData;
+                const m = memoryService as any;
+                if (name) m.addUserData(`Nombre: ${name}`);
+                if (profession) m.addUserData(`Profesión: ${profession}`);
+                if (interests && Array.isArray(interests)) interests.forEach((i: string) => m.addUserData(`Interés: ${i}`));
+                if (favoriteProjects && Array.isArray(favoriteProjects)) favoriteProjects.forEach((p: string) => m.addUserData(`Proyecto Favorito: ${p}`));
+                
+                if (busyUntil) {
+                    const usrMsg = msgs.find(m => m.role === 'user');
+                    if (usrMsg) {
+                        const convQuery = db.query("SELECT user_id FROM conversations WHERE id = $id");
+                        const conv = convQuery.get({ $id: usrMsg.conversation_id }) as { user_id: string };
+                        if (conv) {
+                            console.log(`[Cron Memory] Usuario ${conv.user_id} estará ocupado hasta ${busyUntil}`);
+                            memoryService.setUserBusy(conv.user_id, busyUntil);
+                        }
+                    }
+                }
+            }
+            if (!isWhatsAppConversation && parsed.learnedRules && Array.isArray(parsed.learnedRules)) {
                 for (const rule of parsed.learnedRules) {
                     console.log("[Cron Memory] Nueva regla aprendida:", rule);
                     memoryService.addLearnedRule(rule);
@@ -264,12 +345,6 @@ export function initMemoryCrons() {
             }
             if (parsed.reminders && Array.isArray(parsed.reminders)) {
                 for (const r of parsed.reminders) {
-                    // Nota: El cron no sabe el channel/userid exacto salvo que lo cruce.
-                    // En la practica real se enviaria userId completo desde el meta-análisis. 
-                    // Buscamos que usuario lo pidio basandonos en la DB o inferimos del contexto.
-                    // Para simplificar, pondremos channel telegram fijo y cruzamos del historial.
-
-                    // Buscar de qué usuario era ese mensaje aproximadamente (primer msg de usuario no analizado antes)
                     const usrMsg = msgs.find(m => m.role === 'user');
                     if (usrMsg) {
                         const convQuery = db.query("SELECT user_id, channel FROM conversations WHERE id = $id");
@@ -284,4 +359,109 @@ export function initMemoryCrons() {
             console.error("[Cron Memory] Error analizando el historial", e);
         }
     });
+
+    // 3. Cron de Seguimiento Proactivo (Nudge) - Se ejecuta cada hora en el minuto 30
+    cron.schedule("30 * * * *", async () => {
+        console.log("[Cron] Verificando inactividad para seguimiento proactivo...");
+        const now = new Date();
+        const nowIso = now.toISOString();
+
+        // Buscar conversaciones inactivas basándose en el delay preferido del usuario (en horas)
+        // Se ignoran si han pasado más de 7 días (para no ser spammer en chats olvidados)
+        const query = db.query(`
+            SELECT c.*, u.name as user_name, u.busy_until, u.quiet_hours_start, u.quiet_hours_end, u.nudge_delay_hours
+            FROM conversations c
+            JOIN users u ON c.user_id = u.id
+            WHERE datetime(c.updated_at, '+' || u.nudge_delay_hours || ' hours') <= datetime($now)
+            AND c.updated_at >= datetime($now, '-7 days')
+            AND (c.last_nudge_at IS NULL OR c.last_nudge_at < c.updated_at)
+        `);
+
+        const candidates = query.all({ $now: nowIso }) as any[];
+
+        if (candidates.length === 0) return;
+        
+        const services = getActiveServices();
+        const ai = services[0];
+        if (!ai) return;
+
+        for (const c of candidates) {
+            // 1. Verificar si está ocupado
+            if (c.busy_until && new Date(c.busy_until) > now) {
+                console.log(`[Cron Nudge] Usuario ${c.user_id} está ocupado hasta ${c.busy_until}, saltando.`);
+                continue;
+            }
+
+            // 2. Verificar horas de silencio
+            const currentHour = now.getHours();
+            const currentMin = now.getMinutes();
+            const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`;
+
+            const qStart = c.quiet_hours_start || "22:00";
+            const qEnd = c.quiet_hours_end || "09:00";
+
+            const isQuietTime = qStart > qEnd 
+                ? (currentTimeStr >= qStart || currentTimeStr < qEnd) // Cruza la medianoche
+                : (currentTimeStr >= qStart && currentTimeStr < qEnd);
+
+            if (isQuietTime) {
+                console.log(`[Cron Nudge] Usuario ${c.user_id} está en horas de silencio (${qStart}-${qEnd}), saltando.`);
+                continue;
+            }
+
+            // 3. Generar Nudge con IA
+            console.log(`[Cron Nudge] Generando mensaje proactivo para ${c.user_name || c.user_id} (Inactividad: ${c.nudge_delay_hours}h)`);
+            
+            // Determinar actitud según el delay
+            let attitude = "amigable y equilibrada";
+            if (c.nudge_delay_hours <= 3) attitude = "muy atenta, curiosa y un poco insistente (modo INTENSO)";
+            else if (c.nudge_delay_hours >= 160) attitude = "muy relajada, casi como si te hubieras olvidado de escribir y acabas de recordar (modo OLVIDADIZO)";
+            else if (c.nudge_delay_hours >= 40) attitude = "despreocupada y casual, sin ninguna presión (modo DESPREOCUPADO)";
+
+            const history = memoryService.getRecentHistory(c.id, 5);
+            const nudgePrompt = `
+                Eres una IA asistente personal con una actitud ${attitude}. 
+                Has notado que el usuario (${c.user_name || 'amigo'}) no ha interactuado contigo en más de ${c.nudge_delay_hours} horas.
+                
+                Instrucciones de estilo:
+                - Escribe un mensaje muy BREVE (máximo 2 frases).
+                - Refleja tu actitud de forma natural en el saludo.
+                - Basándote en el último historial, pregunta cómo va o si necesita ayuda con algo específico.
+                
+                Últimos mensajes:
+                ${JSON.stringify(history)}
+            `;
+
+            try {
+                const stream = await ai.chat([{ role: 'user', content: nudgePrompt }]);
+                let nudgeMessage = "";
+                for await (const chunk of stream) if (chunk) nudgeMessage += chunk;
+
+                if (memoryService.onProactiveNudge) {
+                    memoryService.onProactiveNudge(c.channel, c.user_id, nudgeMessage.trim());
+                    db.query("UPDATE conversations SET last_nudge_at = $now WHERE id = $id").run({
+                        $now: now.toISOString(),
+                        $id: c.id
+                    });
+                }
+            } catch (e) {
+                console.error(`[Cron Nudge] Error generando nudge para ${c.user_id}:`, e);
+            }
+        }
+    });
+
+    // Helper interno para guardar datos del usuario (inyectado al servicio)
+    (memoryService as any).addUserData = (content: string) => {
+        const exists = db.query("SELECT id FROM memory_rules WHERE type = 'user_data' AND content = $content LIMIT 1").get({ $content: content });
+        if (!exists) {
+            db.query(`
+              INSERT INTO memory_rules (id, type, content, is_active, created_at) 
+              VALUES ($id, 'user_data', $content, 1, $now)
+            `).run({
+                $id: crypto.randomUUID(),
+                $content: content,
+                $now: new Date().toISOString()
+            });
+        }
+    };
 }

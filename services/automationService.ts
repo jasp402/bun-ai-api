@@ -122,6 +122,61 @@ export const automationService = {
             return automationService.runAhk(script);
         },
 
+        readTerminalContent: async (title: string): Promise<string | null> => {
+            let target = title;
+            if (hwndCache.has(title)) {
+                target = `ahk_id ${hwndCache.get(title)}`;
+                console.log(`[Automation] [readTerminalContent] Usando HWND en caché para ${title}: ${target}`);
+            }
+
+            const tempResult = join(tmpdir(), `ahk_clip_${Date.now()}.txt`);
+            const escapedTempResult = tempResult.replace(/\\/g, "\\\\");
+
+            const script = [
+                `#Requires AutoHotkey v2`,
+                `SetTitleMatchMode(2)`,
+                `target := "${target}"`,
+                `if (WinExist(target)) {`,
+                `    WinActivate(target)`,
+                `    if (WinWaitActive(target, , 3)) {`,
+                `        A_Clipboard := ""`, // Limpiar clip
+                `        Sleep(200)`,
+                `        Send("^A")`,        // Seleccionar Todo (Ctrl+A)
+                `        Sleep(200)`,
+                `        Send("^C")`,        // Copiar (Ctrl+C)
+                `        if (ClipWait(3)) {`,
+                `            FileAppend(A_Clipboard, "${escapedTempResult}", "UTF-8")`,
+                `            Send("{Down}")`, // Quitar seleccion sin MACRO DE CANCELACION (Esc abortaba el MCP)
+                `        } else {`,
+                `            FileAppend("ERROR_CLIPWAIT", "${escapedTempResult}", "UTF-8")`,
+                `        }`,
+                `    } else {`,
+                `        FileAppend("ERROR_WINWAIT", "${escapedTempResult}", "UTF-8")`,
+                `    }`,
+                `} else {`,
+                `    FileAppend("ERROR_NOTFOUND", "${escapedTempResult}", "UTF-8")`,
+                `}`,
+                `ExitApp()`
+            ].join('\n');
+
+            await automationService.runAhk(script);
+
+            try {
+                if (existsSync(tempResult)) {
+                    let text = readFileSync(tempResult, 'utf8');
+                    unlinkSync(tempResult);
+                    if (text.startsWith("ERROR_")) {
+                        console.error(`[Automation] [readTerminalContent] AHK falló con: ${text}`);
+                        return null;
+                    }
+                    return text;
+                }
+            } catch (e) {
+                console.error("[Automation] [readTerminalContent] Error reading clipboard file:", e);
+            }
+            return null;
+        },
+
         captureHwnd: async (title: string, timeoutMs: number = 8000): Promise<string | null> => {
             console.log(`[Automation] [captureHwnd] Esperando ventana "${title}" por ${timeoutMs}ms...`);
             const tempResult = join(tmpdir(), `ahk_hwnd_${Date.now()}.txt`);

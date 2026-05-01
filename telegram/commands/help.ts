@@ -2,44 +2,44 @@ import { sendMessage } from '../utils';
 import type { TelegramMessage } from '../types';
 
 export async function handleHelp(message: TelegramMessage) {
-    const helpMsg = `📖 <b>Available Commands</b>
+    const helpMsg = `📖 <b>Guía de Comandos Disponibles</b>
 ───────────────
 
-🔧 <b>Admin</b>
-<code>/help</code> — Show this help
-<code>/setbio text</code> — Update bot bio
-<code>/setdesc text</code> — Update bot description
-<code>/setpic</code> — Update bot profile picture
+📂 <b>Gestión de Proyectos</b>
+<code>/projects</code> — Lista todos los proyectos (ej: /projects)
+<code>/addproject</code> — Registra un nuevo proyecto (ej: /addproject mi-app)
+<code>/rmproject</code> — Borra un proyecto (ej: /rmproject mi-app)
+<code>/switch</code> — Cambia el proyecto activo (ej: /switch mi-app)
 
-📂 <b>Project Management</b>
-<code>/projects</code> — List all registered projects
-<code>/addproject path</code> — Auto-detect and add project
-<code>/addproject name|path|stack|dev|agent</code> — Explicit add
-<code>/rmproject name</code> — Remove a project
-<code>/switch name</code> — Switch active project
+⚡ <b>Control de Ejecución</b>
+<code>/run</code> — Inicia el servidor (ej: /run npm start)
+<code>/runbg</code> — Inicia el servidor en segundo plano
+<code>/status</code> — Mira qué procesos están corriendo
+<code>/logs</code> — Mira los últimos logs del proyecto activo
+<code>/stop</code> — Detiene el proyecto actual
+<code>/stopall</code> — Mata TODOS los procesos activos
 
-⚡ <b>Process Control</b>
-<code>/run</code> — Start dev server
-<code>/agent [cmd]</code> — Start AI agent for project
-<code>/ngrok [port]</code> — Start ngrok tunnel
-<code>/status</code> — Show all running processes
-<code>/logs</code> — Show recent logs of active project
-<code>/stop</code> — Stop active project processes
-<code>/stopall</code> — Stop ALL processes
+🤖 <b>Agentes de IA (Invocaciones)</b>
+<code>/gemini [msj]</code> — Llama a Gemini (ej: /gemini hola)
+<code>/claude [msj]</code> — Llama a Claude (ej: /claude revisa este código)
+<code>/codex [msj]</code> — Llama a Codex
+<code>/agent</code> — Inicia el agente de IA del proyecto
 
-🤖 <b>IA Agents (Gods)</b>
-<code>/gemini [cmd]</code> — Invoque Gemini
-<code>/claude [cmd]</code> — Invoque Claude Code
-<code>/codex [cmd]</code> — Invoque Codex
+🔋 <b>Disponibilidad y Seguimiento</b>
+<code>/busy [t]</code> — Márcate como ocupado (ej: /busy un rato, /busy mañana)
+<code>/free</code> — Quita el estado de ocupado
+<code>/nudge [t]</code> — Ajusta cuándo te escribo (ej: /nudge intenso, /nudge 6h)
+<code>/quiet [h]</code> — Horas de silencio (ej: /quiet 22:00 09:00)
 
-⌨️ <b>Automation</b>
-<code>/pc [ahk]</code> — Run AutoHotkey v2 code
-<code>/screen</code> — Take PC screenshot
-<code>/shell [cmd]</code> — Run PowerShell command
+⌨️ <b>Automatización PC</b>
+<code>/pc [cmd]</code> — Controla el PC con AHK (ej: /pc apagar pantalla)
+<code>/screen</code> — Toma una captura de pantalla actual
+<code>/shell [cmd]</code> — Ejecuta comandos PowerShell (ej: /shell dir)
 
-💬 <b>Chat</b>
-Just type any message to talk with the AI assistant!
+💬 <b>Chat Directo</b>
+¡Simplemente escribe cualquier mensaje para hablar conmigo! 
+Dependiendo de tu modo /nudge, te escribiré si pasas tiempo sin decir nada.
 ───────────────
-💡 <i>Commands are case-insensitive</i>`;
+💡 <i>Los comandos no distinguen mayúsculas de minúsculas.</i>`;
     await sendMessage(message.chat.id, helpMsg);
 }

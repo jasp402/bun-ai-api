@@ -6,6 +6,7 @@ export const anthropicGlmFactory = {
         const service: AIService = {
             name: 'Anthropic-GLM',
             model: 'claude-sonnet-4-20250514', // Mapea a GLM-4.6 internamente en Z.AI
+            supportsVision: false,
             metrics: {},
 
             async validate() {
@@ -20,8 +21,8 @@ export const anthropicGlmFactory = {
 
                 const anthropicMessages = messages.map(m => ({
                     role: m.role === 'system' ? 'user' : m.role,
-                    content: m.content
-                })).filter(m => m.role !== 'system');
+                    content: typeof m.content === 'string' ? m.content : m.content.map(p => p.type === 'text' ? p.text : '').join('\n')
+                })).filter(m => (m.role as string) !== 'system');
 
                 const systemMessage = messages.find(m => m.role === 'system');
 
@@ -32,7 +33,7 @@ export const anthropicGlmFactory = {
                 };
 
                 if (systemMessage) {
-                    body.system = systemMessage.content;
+                    body.system = typeof systemMessage.content === 'string' ? systemMessage.content : systemMessage.content.map(p => p.type === 'text' ? p.text : '').join('\n');
                 }
 
                 const response = await fetch('https://api.z.ai/api/anthropic/v1/messages', {

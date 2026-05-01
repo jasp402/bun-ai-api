@@ -41,9 +41,19 @@ export function initializeDatabase() {
       id TEXT PRIMARY KEY,
       name TEXT,
       channel TEXT,
+      busy_until TEXT,
+      quiet_hours_start TEXT DEFAULT '22:00',
+      quiet_hours_end TEXT DEFAULT '09:00',
+      nudge_delay_hours INTEGER DEFAULT 12,
       created_at TEXT
     );
   `).run();
+
+  // Migrations for users
+  try { db.query("ALTER TABLE users ADD COLUMN busy_until TEXT").run(); } catch(e){}
+  try { db.query("ALTER TABLE users ADD COLUMN quiet_hours_start TEXT DEFAULT '22:00'").run(); } catch(e){}
+  try { db.query("ALTER TABLE users ADD COLUMN quiet_hours_end TEXT DEFAULT '09:00'").run(); } catch(e){}
+  try { db.query("ALTER TABLE users ADD COLUMN nudge_delay_hours INTEGER DEFAULT 12").run(); } catch(e){}
 
   // Conversations Table
   db.query(`
@@ -51,9 +61,13 @@ export function initializeDatabase() {
       id TEXT PRIMARY KEY,
       user_id TEXT,
       channel TEXT,
+      last_nudge_at TEXT,
       updated_at TEXT
     );
   `).run();
+
+  // Migrations for conversations
+  try { db.query("ALTER TABLE conversations ADD COLUMN last_nudge_at TEXT").run(); } catch(e){}
 
   // Messages Table (con is_analyzed para el cron)
   db.query(`
@@ -88,6 +102,26 @@ export function initializeDatabase() {
       execute_at TEXT, -- ISO Date
       is_executed BOOLEAN DEFAULT 0,
       created_at TEXT
+    );
+  `).run();
+
+  // WhatsApp Inbox Queue
+  db.query(`
+    CREATE TABLE IF NOT EXISTS whatsapp_inbox (
+      id TEXT PRIMARY KEY,
+      source_message_id TEXT UNIQUE,
+      chat_id TEXT NOT NULL,
+      sender_id TEXT NOT NULL,
+      user_name TEXT,
+      text TEXT NOT NULL,
+      command_text TEXT NOT NULL,
+      is_group BOOLEAN DEFAULT 0,
+      status TEXT DEFAULT 'pending',
+      attempt_count INTEGER DEFAULT 0,
+      last_error TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      responded_at TEXT
     );
   `).run();
 
