@@ -1,6 +1,14 @@
+export interface MessageContentPart {
+  type: 'text' | 'image_url';
+  text?: string;
+  image_url?: {
+    url: string;
+  };
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
-  content: string;
+  content: string | MessageContentPart[];
 }
 
 export interface ServiceMetrics {
@@ -12,6 +20,7 @@ export interface ServiceMetrics {
 export interface AIService {
   name: string;
   model: string;
+  supportsVision?: boolean; // Indica si el servicio soporta imágenes
   metrics?: ServiceMetrics; // Estado interno de métricas
   validate?: () => Promise<boolean>; // Método para validar la key
   chat: (messages: ChatMessage[]) => Promise<AsyncIterable<string>>;
@@ -32,6 +41,10 @@ export interface UserRecord {
   id: string;          // Discord/Telegram user ID o UUID si no hay
   name: string | null;
   channel: string;
+  busy_until: string | null;      // ISO Date
+  quiet_hours_start: string | null; // "HH:mm"
+  quiet_hours_end: string | null;   // "HH:mm"
+  nudge_delay_hours: number;        // Horas de inactividad para el toque proactivo
   created_at: string;
 }
 

@@ -32,4 +32,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Finder (MacOS) folder config
 .DS_Store
-*.sqlite-*
+.wppconnect/*
+bun-ai-api.sqlite
+.whatsapp-server.out.log
+.whatsapp-server.err.log
+bun-ai-api.sqlite-shm
+bun-ai-api.sqlite-wal

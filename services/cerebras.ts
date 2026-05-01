@@ -11,6 +11,7 @@ export const cerebrasFactory = {
     return {
       name: 'Cerebras',
       model: 'llama3.1-8b',
+      supportsVision: false,
       metrics: {},
 
       async validate() {
@@ -26,7 +27,7 @@ export const cerebrasFactory = {
         const response = await client.chat.completions.create({
           messages: messages.map(m => ({
             role: m.role as 'system' | 'user' | 'assistant',
-            content: m.content
+            content: typeof m.content === 'string' ? m.content : m.content.map(p => p.type === 'text' ? p.text : '').join('\n')
           })),
           model: "llama3.1-8b",
           stream: true,

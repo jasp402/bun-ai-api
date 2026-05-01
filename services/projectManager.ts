@@ -230,20 +230,30 @@ export const projectManager = {
      * Detiene un proceso por su ID.
      */
     stopProcess(processId: string): boolean {
+        const processRecord = dbService.getProcessById(processId);
         const proc = activeSubprocesses.get(processId);
-        if (proc) {
+        const targetPid = proc?.pid || processRecord?.pid;
+
+        if (targetPid) {
             try {
-                proc.kill();
-                activeSubprocesses.delete(processId);
-                dbService.updateProcess(processId, { status: 'stopped' });
-                console.log(`[ProjectManager] Proceso ${processId} detenido.`);
-                return true;
-            } catch (e) {
-                console.error(`[ProjectManager] Error deteniendo proceso:`, e);
-                return false;
+                if (process.platform === "win32") {
+                    try {
+                        require("node:child_process").execSync(`taskkill /pid ${targetPid} /T /F`, { stdio: 'ignore' });
+                    } catch (e) {
+                        if (proc) proc.kill();
+                    }
+                } else {
+                    if (proc) proc.kill();
+                    else process.kill(targetPid);
+                }
+            } catch (e: any) {
+                console.error(`[ProjectManager] Error deteniendo proceso a nivel OS:`, e.message);
             }
         }
+
+        if (proc) activeSubprocesses.delete(processId);
         dbService.updateProcess(processId, { status: 'stopped' });
+        console.log(`[ProjectManager] Proceso ${processId} detenido (PID: ${targetPid}).`);
         return true;
     },
 

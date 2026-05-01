@@ -12,6 +12,7 @@ export const openRouterFactory = {
         const service: AIService = {
             name: 'OpenRouter',
             model: 'openrouter/auto', // Modelo auto como predeterminado
+            supportsVision: false,
             metrics: {},
 
             async validate() {
@@ -24,23 +25,14 @@ export const openRouterFactory = {
             },
 
             async chat(messages: ChatMessage[]) {
-                const rawResponse = await openai.chat.completions.create({
+                const stream = await openai.chat.completions.create({
                     model: this.model,
                     messages: messages.map(m => ({
                         role: m.role as 'system' | 'user' | 'assistant',
-                        content: m.content
+                        content: typeof m.content === 'string' ? m.content : m.content.map(p => p.type === 'text' ? p.text : '').join('\n')
                     })),
                     stream: true,
-                }).asResponse();
-
-                const headers = rawResponse.headers;
-                this.metrics = {
-                    remainingRequests: headers.get('x-ratelimit-remaining-requests') ? parseInt(headers.get('x-ratelimit-remaining-requests') || '0') : undefined,
-                    remainingTokens: headers.get('x-ratelimit-remaining-tokens') ? parseInt(headers.get('x-ratelimit-remaining-tokens') || '0') : undefined,
-                    resetTime: Date.now()
-                };
-
-                const stream = OpenAI.Chat.Completions.ChatCompletionStream.fromReadableStream(rawResponse.body as any);
+                });
 
                 return (async function* () {
                     for await (const chunk of stream) {

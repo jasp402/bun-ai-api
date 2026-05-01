@@ -127,6 +127,58 @@ export const deepseekFactory = {
 
 El sistema detectará automáticamente el nuevo archivo, comprobará `isEnabled` y, si devuelve `true`, añadirá el servicio a la rotación.
 
+## Canales de mensajería
+
+### Telegram
+
+Si defines `TELEGRAM_BOT_API_KEY`, el bot de Telegram se inicia automáticamente al levantar el servidor.
+
+### WhatsApp Web con WPPConnect
+
+Si defines estas variables, el servidor levanta un cliente de WhatsApp Web con sesión persistente en disco:
+
+```env
+WHATSAPP_ENABLED=true
+WHATSAPP_SESSION_NAME=bun-ai-api
+WHATSAPP_SESSION_DIR=.wppconnect
+WHATSAPP_HEADFUL=false
+WHATSAPP_DEVICE_NAME=bun-ai-api
+WHATSAPP_CHROME_PATH=
+WHATSAPP_ALLOWED_IDS=
+WHATSAPP_ALLOWED_GROUP_IDS=
+WHATSAPP_GROUP_ALLOW_ALL_MEMBERS=true
+WHATSAPP_REQUIRED_PREFIX=@jaspbot
+```
+
+Variables opcionales para grupos:
+
+```env
+WHATSAPP_ALLOWED_IDS=51999999999,51999999999@c.us,270411728220238@lid
+WHATSAPP_ALLOWED_GROUP_IDS=120363406379941321@g.us
+WHATSAPP_GROUP_TRIGGERS=@mibot,mibot,bot
+```
+
+Comportamiento actual:
+
+* En chat directo responde siempre.
+* En chat directo solo responde a remitentes incluidos en `WHATSAPP_ALLOWED_IDS`.
+* Si defines `WHATSAPP_ALLOWED_GROUP_IDS`, en grupos solo funciona dentro de esos grupos.
+* Con `WHATSAPP_GROUP_ALLOW_ALL_MEMBERS=true`, cualquier miembro de un grupo permitido puede invocarlo con el prefijo.
+* Solo procesa mensajes que comiencen con `WHATSAPP_REQUIRED_PREFIX` como `@jaspbot`.
+* En grupos, además de estar permitido, solo responde si detecta mención real al bot o un trigger textual configurado.
+* Usa el mismo motor de memoria del proyecto, pero separado por canal `whatsapp`.
+* Persiste la sesión en `.wppconnect/` usando token store + perfil de navegador.
+* Si defines `BRAVE_SEARCH_API`, el bot puede enriquecer consultas sobre actualidad, IA, noticias, lanzamientos y tendencias con resultados web recientes de Brave Search.
+* Para ese contexto web reciente, se limita a evidencia de hasta 7 días y, si no encuentra base suficiente, responde con cautela en vez de inventar novedades.
+* El catálogo local de fuentes web, RSS y Atom para tecnología, QA, cloud, comunidades y releases quedó centralizado en `services/newsSources.ts`.
+* El flujo de WhatsApp ya puede entregar un boletín numerado de al menos 10 titulares recientes y aceptar seguimientos como `profundiza en la número 5` usando la última lista servida en ese chat.
+
+Endpoints útiles:
+
+1. `GET /api/v1/whatsapp/status` para ver estado, sesión y errores.
+2. `GET /api/v1/whatsapp/qr` para abrir el QR en navegador y escanearlo.
+3. `POST /api/v1/whatsapp/restart` para reiniciar el cliente sin borrar la sesión persistida.
+
 ## Tutorial
 
 Mira el video explicativo de cómo se ha creado este proyecto:

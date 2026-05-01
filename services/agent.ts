@@ -13,6 +13,10 @@ export const agentService = {
 
         let toolsInstruction = `\n\n=== HERRAMIENTAS DISPONIBLES ===\nTienes acceso a las siguientes herramientas mediante el sistema Model Context Protocol (MCP).\n`;
 
+        // ... (rest of the tools logic remains same but we must ensure we don't break the string if content is array)
+        // Since system prompt is usually string, we handle it.
+        const baseContent = typeof systemPrompt.content === 'string' ? systemPrompt.content : "";
+
         // 1. Herramientas de Automatización Físisica (Internas)
         toolsInstruction += `
 Herramienta: ahk_run
@@ -60,7 +64,7 @@ REGLAS CRITICAS:
 
         return {
             role: 'system',
-            content: systemPrompt.content + toolsInstruction + projectManager.getActiveProjectContext()
+            content: baseContent + toolsInstruction + projectManager.getActiveProjectContext()
         };
     },
 
