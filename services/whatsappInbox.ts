@@ -39,6 +39,13 @@ db.query(`
     updated_at TEXT NOT NULL,
     responded_at TEXT
   );
+
+  -- ⚡ Bolt Performance Optimization:
+  -- What: Added a composite index on (status, created_at).
+  -- Why: The getPending() method queries for status IN ('pending', 'failed') ORDER BY created_at.
+  -- Impact: Turns an O(N) full table scan into an O(log N) index lookup.
+  -- Measurement: Verify execution time of getPending() query using EXPLAIN QUERY PLAN.
+  CREATE INDEX IF NOT EXISTS idx_whatsapp_inbox_status_created_at ON whatsapp_inbox(status, created_at);
 `).run();
 
 export const whatsappInboxService = {
