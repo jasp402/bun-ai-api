@@ -240,9 +240,14 @@ export function initMemoryCrons() {
 
         if (msgs.length === 0) return;
 
-        // Marcar como analizados para no reprocesarlos
-        const ids = msgs.map(m => `'${m.id}'`).join(",");
-        db.query(`UPDATE messages SET is_analyzed = 1 WHERE id IN (${ids})`).run();
+        // Marcar como analizados para no reprocesarlos de forma segura
+        const updateStmt = db.query("UPDATE messages SET is_analyzed = 1 WHERE id = $id");
+        const markAnalyzed = db.transaction((messages: MessageRecord[]) => {
+            for (const msg of messages) {
+                updateStmt.run({ $id: msg.id });
+            }
+        });
+        markAnalyzed(msgs);
 
         // Obtener servicio activo de IA para procesar
         const services = getActiveServices();
