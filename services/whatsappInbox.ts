@@ -41,6 +41,9 @@ db.query(`
   );
 `).run();
 
+// PERFORMANCE INDEXES
+db.query("CREATE INDEX IF NOT EXISTS idx_whatsapp_inbox_status_created_at ON whatsapp_inbox(status, created_at);").run();
+
 export const whatsappInboxService = {
   enqueue: (payload: {
     sourceMessageId: string;

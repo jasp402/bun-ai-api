@@ -217,6 +217,7 @@ export function initializeDatabase() {
   db.query("CREATE INDEX IF NOT EXISTS idx_reminders_is_executed_execute_at ON reminders(is_executed, execute_at);").run();
   db.query("CREATE INDEX IF NOT EXISTS idx_processes_project_id ON processes(project_id);").run();
   db.query("CREATE INDEX IF NOT EXISTS idx_processes_status ON processes(status);").run();
+  db.query("CREATE INDEX IF NOT EXISTS idx_whatsapp_inbox_status_created_at ON whatsapp_inbox(status, created_at);").run();
 
   console.log("Database initialized.");
 }
