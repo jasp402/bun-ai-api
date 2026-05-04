@@ -218,6 +218,11 @@ export function initializeDatabase() {
   db.query("CREATE INDEX IF NOT EXISTS idx_processes_project_id ON processes(project_id);").run();
   db.query("CREATE INDEX IF NOT EXISTS idx_processes_status ON processes(status);").run();
 
+  // Performance Optimization: Add a compound index to whatsapp_inbox to significantly speed up
+  // the periodic background polling queries that fetch 'pending'/'failed' items ordered by 'created_at'.
+  // Without this index, every execution (every 10s) forces a full-table scan, degrading DB performance over time.
+  db.query("CREATE INDEX IF NOT EXISTS idx_whatsapp_inbox_status_created_at ON whatsapp_inbox(status, created_at);").run();
+
   console.log("Database initialized.");
 }
 
