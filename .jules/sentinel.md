@@ -6,3 +6,7 @@
 **Vulnerability:** A raw string concatenation was used inside an SQLite `IN (...)` clause in a background memory analysis cron job (`db.query(\`... WHERE id IN (${ids})\`)`). Even if the IDs originate internally from a previous database query, raw string concatenation leaves the code vulnerable to SQL injection if any ID happens to contain unescaped quotes or if the source of the ID data ever changes to user input.
 **Learning:** `bun:sqlite` does not natively support array parameter binding for SQL `IN (?)` clauses out of the box. The safest way to do bulk updates is using a prepared statement and `db.transaction`.
 **Prevention:** Never use string concatenation to build query arguments. Always use parameterized queries or `db.transaction()` for batch operations.
+## 2024-05-20 - Telegram Bot Authorization Fail-Open Risk
+**Vulnerability:** The Telegram bot authorization logic defaulted to "fail-open" if the `ALLOWED_TELEGRAM_USERS` environment variable was missing or empty. This meant that if the configuration was forgotten during deployment, the bot would process commands from any user, including sensitive commands like `/shell`.
+**Learning:** Environment variable-based allowlists must enforce a strict "fail-closed" policy. If the configuration is absent, access should be explicitly denied by default, rather than allowed.
+**Prevention:** Implement checks that fail and block access if security-critical configuration variables are missing or empty, enforcing a secure default state.

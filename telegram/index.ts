@@ -108,13 +108,17 @@ async function handleMessage(message: any) {
 
     // Security: Check if user is allowed to interact with the bot
     const allowedUsersStr = process.env.ALLOWED_TELEGRAM_USERS;
-    if (allowedUsersStr && allowedUsersStr.trim().length > 0) {
-        const allowedUsers = allowedUsersStr.split(',').map(u => u.trim());
-        if (!allowedUsers.includes(userIdStr)) {
-            console.warn(`[Security] Unauthorized access attempt from user ${userName || userIdStr} (${userIdStr})`);
-            await sendMessage(chatId, "⛔ Unauthorized: You do not have permission to interact with this bot.");
-            return;
-        }
+    if (!allowedUsersStr || allowedUsersStr.trim().length === 0) {
+        console.warn(`[Security] Blocked access attempt from user ${userName || userIdStr} (${userIdStr}): ALLOWED_TELEGRAM_USERS is not configured (fail-closed policy).`);
+        await sendMessage(chatId, "⛔ Unauthorized: Bot access is explicitly denied when allowlist is not configured.");
+        return;
+    }
+
+    const allowedUsers = allowedUsersStr.split(',').map(u => u.trim());
+    if (!allowedUsers.includes(userIdStr)) {
+        console.warn(`[Security] Unauthorized access attempt from user ${userName || userIdStr} (${userIdStr})`);
+        await sendMessage(chatId, "⛔ Unauthorized: You do not have permission to interact with this bot.");
+        return;
     }
 
     // Gestión de Memoria
