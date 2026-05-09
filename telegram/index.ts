@@ -106,15 +106,19 @@ async function handleMessage(message: any) {
     const userIdStr = message.from.id.toString();
     const userName = message.from.first_name || message.from.username || null;
 
-    // Security: Check if user is allowed to interact with the bot
+    // Security: Check if user is allowed to interact with the bot (Fail-closed)
     const allowedUsersStr = process.env.ALLOWED_TELEGRAM_USERS;
-    if (allowedUsersStr && allowedUsersStr.trim().length > 0) {
-        const allowedUsers = allowedUsersStr.split(',').map(u => u.trim());
-        if (!allowedUsers.includes(userIdStr)) {
-            console.warn(`[Security] Unauthorized access attempt from user ${userName || userIdStr} (${userIdStr})`);
-            await sendMessage(chatId, "⛔ Unauthorized: You do not have permission to interact with this bot.");
-            return;
-        }
+    if (!allowedUsersStr || allowedUsersStr.trim().length === 0) {
+        console.warn(`[Security] Denied access for ${userName || userIdStr} (${userIdStr}): ALLOWED_TELEGRAM_USERS is not configured`);
+        await sendMessage(chatId, "⛔ Unauthorized: The bot is currently locked down.");
+        return;
+    }
+
+    const allowedUsers = allowedUsersStr.split(',').map(u => u.trim());
+    if (!allowedUsers.includes(userIdStr)) {
+        console.warn(`[Security] Unauthorized access attempt from user ${userName || userIdStr} (${userIdStr})`);
+        await sendMessage(chatId, "⛔ Unauthorized: You do not have permission to interact with this bot.");
+        return;
     }
 
     // Gestión de Memoria
