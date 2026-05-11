@@ -115,9 +115,23 @@ export const whatsappInboxService = {
   },
 
   getPending: (limit = 50) => {
+    // Performance Optimization: Using IN ('pending', 'failed') with ORDER BY prevents index-based
+    // sorting in SQLite, forcing a temporary B-Tree sort. By using UNION ALL on two separate
+    // index-backed queries, we maintain O(1) performance using the composite index.
     return db.query(`
-      SELECT * FROM whatsapp_inbox
-      WHERE status IN ('pending', 'failed')
+      SELECT * FROM (
+        SELECT * FROM whatsapp_inbox
+        WHERE status = 'pending'
+        ORDER BY created_at ASC
+        LIMIT $limit
+      )
+      UNION ALL
+      SELECT * FROM (
+        SELECT * FROM whatsapp_inbox
+        WHERE status = 'failed'
+        ORDER BY created_at ASC
+        LIMIT $limit
+      )
       ORDER BY created_at ASC
       LIMIT $limit
     `).all({ $limit: limit }) as WhatsAppInboxItem[];
