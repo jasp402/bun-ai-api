@@ -165,15 +165,44 @@ export function renderWhatsAppQrHtml() {
   }
 
   const imageTag = runtimeState.qrCode
-    ? `<img src="data:image/png;base64,${runtimeState.qrCode}" alt="WhatsApp QR" style="max-width: 360px; width: 100%;" />`
-    : "<p>No image QR available.</p>";
+    ? `<img src="data:image/png;base64,${runtimeState.qrCode}" alt="WhatsApp QR Code for scanning and linking" style="max-width: 360px; width: 100%; display: block; margin: 0 auto;" />`
+    : "<p>Visual QR Code unavailable.</p>";
 
   const ascii = runtimeState.asciiQR
-    ? `<pre style="white-space: pre-wrap; font-size: 10px; line-height: 1;">${escapeHtml(runtimeState.asciiQR)}</pre>`
+    ? `<pre aria-label="Text representation of the QR Code" style="white-space: pre-wrap; font-size: 10px; line-height: 1; text-align: left; overflow-x: auto;">${escapeHtml(runtimeState.asciiQR)}</pre>`
     : "";
 
   return new Response(
-    `<!doctype html><html><body style="font-family: sans-serif; padding: 24px;"><h1>WhatsApp QR</h1>${imageTag}${ascii}</body></html>`,
+    `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="15">
+  <title>Link WhatsApp - Bot</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    main { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 400px; width: 100%; text-align: center; }
+    h1 { color: #1a1a1a; margin-top: 0; font-size: 24px; }
+    p.instruction { color: #555; margin-bottom: 24px; font-size: 15px; line-height: 1.5; }
+    .qr-container { padding: 16px; background: white; border-radius: 8px; border: 1px solid #ddd; display: inline-block; }
+    .footer { margin-top: 24px; font-size: 13px; color: #888; }
+    .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top-color: #25D366; animation: spin 1s ease-in-out infinite; margin-right: 8px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Link WhatsApp</h1>
+    <p class="instruction">Open WhatsApp on your phone, go to <strong>Linked Devices</strong>, and scan this QR code. The page will refresh automatically.</p>
+    <div class="qr-container" aria-label="QR Code to link WhatsApp" role="img">
+      ${imageTag}
+      ${ascii}
+    </div>
+    <div class="footer"><span class="spinner" aria-hidden="true"></span>Waiting for connection...</div>
+  </main>
+</body>
+</html>`,
     { headers: { "Content-Type": "text/html; charset=utf-8" } }
   );
 }
