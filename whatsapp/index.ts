@@ -173,7 +173,19 @@ export function renderWhatsAppQrHtml() {
     : "";
 
   return new Response(
-    `<!doctype html><html><body style="font-family: sans-serif; padding: 24px;"><h1>WhatsApp QR</h1>${imageTag}${ascii}</body></html>`,
+    `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp QR Code Login</title>
+</head>
+<body style="font-family: sans-serif; padding: 24px;">
+  <h1>WhatsApp QR</h1>
+  ${imageTag}
+  ${ascii}
+</body>
+</html>`,
     { headers: { "Content-Type": "text/html; charset=utf-8" } }
   );
 }
