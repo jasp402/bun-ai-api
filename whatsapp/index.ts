@@ -172,8 +172,22 @@ export function renderWhatsAppQrHtml() {
     ? `<pre style="white-space: pre-wrap; font-size: 10px; line-height: 1;">${escapeHtml(runtimeState.asciiQR)}</pre>`
     : "";
 
+  const htmlBoilerplate = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WhatsApp QR</title>
+</head>
+<body style="font-family: sans-serif; padding: 24px;">
+  <h1>WhatsApp QR</h1>
+  ${imageTag}
+  ${ascii}
+</body>
+</html>`;
+
   return new Response(
-    `<!doctype html><html><body style="font-family: sans-serif; padding: 24px;"><h1>WhatsApp QR</h1>${imageTag}${ascii}</body></html>`,
+    htmlBoilerplate,
     { headers: { "Content-Type": "text/html; charset=utf-8" } }
   );
 }

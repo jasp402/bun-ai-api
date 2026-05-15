@@ -1,0 +1,3 @@
+## 2024-05-15 - [WhatsApp QR code endpoint HTML boilerplate]
+**Learning:** Dynamically generated HTML strings from APIs, even for simple utility endpoints like QR codes, need basic HTML boilerplate (`<head>`, `<title>`, `<meta name="viewport">`, `lang` attribute). Without them, the page lacks basic accessibility and mobile rendering capability.
+**Action:** Always include complete HTML boilerplate when returning HTML from an API endpoint, even if it's mostly generated content (like an image).
