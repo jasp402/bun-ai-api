@@ -1,0 +1,3 @@
+## 2024-05-17 - Essential HTML Boilerplate for Dynamic Endpoints
+**Learning:** Returning dynamically generated HTML strings from API endpoints (like the WhatsApp QR code endpoint) without proper HTML boilerplate (`<html lang="...">`, `<head>`, `<title>`, `<meta name="viewport">`) leads to poor accessibility and incorrect responsive rendering on mobile devices.
+**Action:** Always include basic HTML boilerplate when returning raw HTML from an API endpoint to ensure proper viewport scaling and basic accessibility requirements are met.
