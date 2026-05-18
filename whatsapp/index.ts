@@ -165,17 +165,94 @@ export function renderWhatsAppQrHtml() {
   }
 
   const imageTag = runtimeState.qrCode
-    ? `<img src="data:image/png;base64,${runtimeState.qrCode}" alt="WhatsApp QR" style="max-width: 360px; width: 100%;" />`
-    : "<p>No image QR available.</p>";
+    ? `<img src="data:image/png;base64,${runtimeState.qrCode}" alt="Código QR de conexión de WhatsApp" />`
+    : '<p role="alert">No hay imagen QR disponible en este momento.</p>';
 
   const ascii = runtimeState.asciiQR
-    ? `<pre style="white-space: pre-wrap; font-size: 10px; line-height: 1;">${escapeHtml(runtimeState.asciiQR)}</pre>`
+    ? `<pre aria-label="Código QR en formato ASCII">${escapeHtml(runtimeState.asciiQR)}</pre>`
     : "";
 
-  return new Response(
-    `<!doctype html><html><body style="font-family: sans-serif; padding: 24px;"><h1>WhatsApp QR</h1>${imageTag}${ascii}</body></html>`,
-    { headers: { "Content-Type": "text/html; charset=utf-8" } }
-  );
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vincular WhatsApp</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f3f4f6;
+      color: #111827;
+    }
+    main {
+      background: white;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.5rem;
+      color: #1f2937;
+    }
+    p {
+      color: #4b5563;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+    pre {
+      white-space: pre-wrap;
+      font-size: 10px;
+      line-height: 1;
+      overflow-x: auto;
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #111827;
+        color: #f9fafb;
+      }
+      main {
+        background: #1f2937;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5);
+      }
+      h1 { color: #f9fafb; }
+      p { color: #d1d5db; }
+      pre {
+        background: #374151;
+        color: #f9fafb;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main aria-labelledby="qr-title">
+    <h1 id="qr-title">Vincular WhatsApp</h1>
+    <p>Escanea este código QR usando la aplicación de WhatsApp para conectar el bot.</p>
+    ${imageTag}
+    ${ascii}
+  </main>
+</body>
+</html>`;
+
+  return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
 
 export async function sendWhatsAppMessage(to: string, text: string) {
