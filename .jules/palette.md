@@ -1,0 +1,3 @@
+## 2025-05-19 - Ocultar ASCII Art de los Lectores de Pantalla
+**Learning:** Cuando se presenta arte ASCII (como códigos QR en texto) en una página web, los lectores de pantalla intentan leer cada carácter individualmente, creando una experiencia auditiva extremadamente confusa y frustrante.
+**Action:** Utilizar siempre el atributo `aria-hidden="true"` en elementos `<pre>` o bloques que contengan arte ASCII visual que no aporte valor o no tenga sentido al ser leído en voz alta.
