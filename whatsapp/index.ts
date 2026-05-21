@@ -169,11 +169,11 @@ export function renderWhatsAppQrHtml() {
     : "<p>No image QR available.</p>";
 
   const ascii = runtimeState.asciiQR
-    ? `<pre style="white-space: pre-wrap; font-size: 10px; line-height: 1;">${escapeHtml(runtimeState.asciiQR)}</pre>`
+    ? `<pre aria-hidden="true" style="white-space: pre-wrap; font-size: 10px; line-height: 1;">${escapeHtml(runtimeState.asciiQR)}</pre>`
     : "";
 
   return new Response(
-    `<!doctype html><html><body style="font-family: sans-serif; padding: 24px;"><h1>WhatsApp QR</h1>${imageTag}${ascii}</body></html>`,
+    `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>WhatsApp QR</title>\n</head>\n<body style="font-family: sans-serif; padding: 24px;">\n<h1>WhatsApp QR</h1>\n${imageTag}\n${ascii}\n</body>\n</html>`,
     { headers: { "Content-Type": "text/html; charset=utf-8" } }
   );
 }

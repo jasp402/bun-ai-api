@@ -1,0 +1,3 @@
+## 2024-05-15 - WhatsApp QR Accessibility & Boilerplate
+**Learning:** Returning dynamically generated HTML strings from API endpoints (like `/api/v1/whatsapp/qr`) without proper HTML boilerplate (`<html lang="...">`, `<head>`, `<meta name="viewport">`) can cause rendering and accessibility issues, especially on mobile devices. Additionally, ASCII art (such as generated QR codes) in `<pre>` tags must use `aria-hidden="true"` to prevent screen readers from reading it character-by-character, which is a poor user experience.
+**Action:** Always ensure dynamic HTML responses include standard boilerplate and apply `aria-hidden="true"` to structural ASCII art.
