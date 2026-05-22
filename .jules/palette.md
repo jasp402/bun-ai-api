@@ -1,0 +1,3 @@
+## 2024-05-22 - Hide ASCII QR code from screen readers
+**Learning:** Screen readers will attempt to read ASCII art character-by-character, leading to a very negative user experience for visually impaired users.
+**Action:** Always use `aria-hidden="true"` on `<pre>` tags or blocks containing visual ASCII art (like generated QR codes) to prevent this negative user experience. Added `aria-hidden="true"` to the WhatsApp QR endpoint HTML output.
