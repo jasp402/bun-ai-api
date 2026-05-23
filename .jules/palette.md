@@ -1,0 +1,3 @@
+## 2025-02-23 - WhatsApp QR ASCII Accessibility
+**Learning:** Screen readers will attempt to read ASCII art character-by-character, creating a terrible user experience. Additionally, setting the correct `lang` attribute on HTML endpoints that return text in a specific language (even if the rest of the application is in another language) is critical for proper pronunciation by screen readers.
+**Action:** Always add `aria-hidden="true"` to `<pre>` tags or blocks containing visual ASCII art. Always ensure dynamically generated HTML pages include full HTML boilerplate (`<head>`, `<title>`, `<meta name="viewport">`) and the appropriate `lang` attribute.
