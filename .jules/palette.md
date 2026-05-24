@@ -1,0 +1,3 @@
+## 2024-03-24 - API HTML Responses Accessibility and ASCII Art
+**Learning:** Returning dynamically generated HTML strings from API endpoints (like QR codes or status pages) often misses critical boilerplate like `<html lang="...">` or `<meta name="viewport">`. This harms both mobile usability and accessibility (screen readers cannot detect language properly). Additionally, screen readers will attempt to read ASCII art character-by-character, which is a terrible UX.
+**Action:** Always include complete HTML boilerplate (`<!doctype html>`, `<head>`, `<title>`, `<meta viewport>`, and `<html lang="...">`) when returning raw HTML from an API. Use `aria-hidden="true"` on `<pre>` blocks containing ASCII art (like QR codes) to hide them from screen readers.
