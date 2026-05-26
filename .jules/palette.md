@@ -1,0 +1,3 @@
+## 2024-06-25 - WhatsApp QR HTML Accessibility Improvements
+**Learning:** Screen readers will attempt to read ASCII art character-by-character, leading to a negative user experience. Additionally, returning raw HTML strings from an API without basic boilerplate (like `<html>`, `<head>`, `<title>`, and viewport meta tags) negatively impacts accessibility and mobile rendering.
+**Action:** Always add `aria-hidden="true"` to `<pre>` tags or blocks containing visual ASCII art. Furthermore, ensure dynamically generated HTML strings from APIs include proper HTML boilerplate and `lang` attributes.
