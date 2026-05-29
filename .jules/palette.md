@@ -1,0 +1,3 @@
+## 2024-05-29 - Accessibility and Mobile Boilerplate for Dynamic API HTML Strings
+**Learning:** Screen readers will attempt to read ASCII art character-by-character, leading to a terrible user experience. Additionally, returning raw HTML strings from an API without proper HTML boilerplate (`<head>`, `<title>`, `<meta name="viewport">`, `lang`) causes mobile rendering and general accessibility regressions.
+**Action:** When returning dynamically generated HTML strings that contain visual elements like ASCII art, always include `aria-hidden="true"` on the containing `<pre>` block. Ensure standard HTML boilerplate is included for any HTML returned directly from an API endpoint.
