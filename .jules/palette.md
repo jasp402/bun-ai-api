@@ -1,0 +1,3 @@
+## 2024-05-24 - Hiding ASCII QR codes from Screen Readers
+**Learning:** Returning ASCII art (like a QR code) without proper accessibility attributes causes a massive usability issue for screen readers, as they will attempt to read the art character-by-character. Moreover, returning HTML strings directly from an API requires standard HTML boilerplate to ensure proper scaling and accessibility context on mobile devices.
+**Action:** Always use `aria-hidden="true"` on ASCII art blocks and ensure all dynamically returned HTML strings have a valid boilerplate (`<head>`, `<title>`, `<meta name="viewport">`, `lang` attribute).
