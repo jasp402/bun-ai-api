@@ -1,0 +1,3 @@
+## 2024-06-04 - Screen reader accessibility for ASCII Art and API-generated HTML
+**Learning:** Screen readers will attempt to read ASCII art character-by-character, creating a terrible user experience. Additionally, simple dynamically generated HTML from API endpoints often lacks basic metadata needed for proper mobile rendering and language identification.
+**Action:** Always use `aria-hidden="true"` on `<pre>` tags or blocks containing visual ASCII art. Furthermore, ensure any dynamically generated HTML returned from an API includes proper boilerplate (`<!DOCTYPE html>`, `<html>` with `lang`, `<head>`, `<meta charset>`, `<meta name="viewport">`, and `<title>`) to ensure basic accessibility and mobile responsiveness.
