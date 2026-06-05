@@ -1,0 +1,3 @@
+## 2026-06-05 - Add a11y support to WhatsApp QR code HTML response
+**Learning:** Screen readers will attempt to read ASCII art character-by-character, which is a terrible experience. Also, returning dynamically generated HTML strings from the API requires proper HTML boilerplate (`<head>`, `<title>`, `<meta name="viewport">`, and `lang` attribute) to ensure basic accessibility and mobile rendering.
+**Action:** Always use `aria-hidden="true"` on `<pre>` tags or blocks containing visual ASCII art (like generated QR codes). Always include proper HTML boilerplate when returning dynamically generated HTML strings from the API. Verify the language of hardcoded text before applying attributes like `lang="en"`.
