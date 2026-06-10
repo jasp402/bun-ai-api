@@ -1,0 +1,3 @@
+## 2024-05-24 - Hiding ASCII Art from Screen Readers and Setting Boilerplates
+**Learning:** Screen readers will attempt to read ASCII art character-by-character if not explicitly hidden. It is important to always use `aria-hidden="true"` on `<pre>` tags or blocks containing visual ASCII art. Also, when returning dynamically generated HTML strings from an API, a proper HTML boilerplate (`<head>`, `<title>`, `<meta name="viewport">`, and `lang` attribute) must be included to ensure basic accessibility and mobile rendering.
+**Action:** When adding ASCII art content, explicitly mark it with `aria-hidden="true"`. Furthermore, when serving HTML via an API response string, double-check that full document boilerplates are used.
