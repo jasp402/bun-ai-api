@@ -1,0 +1,3 @@
+## 2024-06-12 - Accessibility of Dynamic HTML Generation and ASCII Art
+**Learning:** Screen readers attempt to read ASCII art character-by-character, leading to a poor user experience. Furthermore, dynamically generated HTML strings from APIs often lack necessary boilerplate (`<head>`, `<title>`, `<meta name="viewport">`, `lang`), preventing basic accessibility and mobile rendering from functioning correctly.
+**Action:** Always add `aria-hidden="true"` to tags containing ASCII art like generated QR codes. When generating raw HTML strings from the backend, ensure complete and proper HTML boilerplate is included, and accurately identify the language.
