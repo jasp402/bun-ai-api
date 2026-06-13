@@ -1,0 +1,3 @@
+## 2026-06-13 - [Accessibility Boilerplate and ASCII Art for Dynamically Generated HTML]
+**Learning:** Returning dynamically generated HTML strings from the API (such as the WhatsApp QR code endpoint) without proper HTML boilerplate (`<head>`, `<title>`, `<meta name="viewport">`, and `lang` attribute) negatively impacts basic accessibility and mobile rendering. In addition, screen readers attempt to read ASCII art character-by-character, leading to a negative user experience.
+**Action:** Always include complete HTML boilerplate when dynamically rendering HTML views via endpoints. Always use `aria-hidden="true"` on `<pre>` tags or blocks containing visual ASCII art (like generated QR codes) to prevent screen readers from reading them out loud.
