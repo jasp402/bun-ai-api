@@ -1,0 +1,3 @@
+## 2026-06-15 - Dynamic HTML Boilerplate and ASCII Art Accessibility
+**Learning:** Returning dynamically generated HTML strings from API endpoints (like QR codes) often lack proper HTML boilerplate which prevents basic accessibility and mobile rendering. Furthermore, screen readers try to read ASCII art character-by-character, leading to a terrible user experience.
+**Action:** Always include complete HTML boilerplate (`<!doctype html>`, `<html>` with `lang`, `<head>`, `<meta name="viewport">`, `<title>`) when returning raw HTML strings. Ensure `<pre>` tags or blocks containing visual ASCII art are decorated with `aria-hidden="true"`.
