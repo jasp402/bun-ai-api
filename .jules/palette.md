@@ -1,0 +1,3 @@
+## 2024-05-24 - Screen Reader Compatibility for ASCII Art in Dynamically Generated HTML
+**Learning:** Screen readers will attempt to read ASCII art character-by-character, creating a terrible user experience. Additionally, dynamically generated HTML strings from APIs often lack basic HTML boilerplate (like `lang`, `<title>`, `<meta viewport>`), which prevents basic accessibility tools from functioning correctly and harms mobile rendering.
+**Action:** Always include full HTML boilerplate when returning HTML strings from API endpoints. Critically, always use `aria-hidden="true"` on `<pre>` tags or blocks that contain visual ASCII art (like generated QR codes) to hide them from screen readers.
