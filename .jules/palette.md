@@ -1,0 +1,3 @@
+## 2025-06-17 - Improve Accessibility of ASCII Art and Mobile Viewport Configuration
+**Learning:** Screen readers will attempt to read ASCII art character-by-character, creating a terrible user experience. Dynamically generated HTML endpoints returning QR codes must use `aria-hidden="true"` on the `<pre>` tags. Additionally, returning HTML strings from an API without proper boilerplate (`<head>`, `<title>`, `<meta name="viewport">`, `lang`) causes mobile rendering and general accessibility regressions.
+**Action:** Always include a fully structured HTML skeleton and wrap any ASCII visual representations with `aria-hidden="true"` when serving dynamically generated UI from backend logic.
