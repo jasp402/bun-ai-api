@@ -1,0 +1,3 @@
+## 2024-06-18 - Prevent screen reader verbose spelling of ASCII art
+**Learning:** Screen readers attempt to read ASCII art character-by-character, leading to a confusing and verbose experience. The API endpoint serving the WhatsApp QR code returns raw ASCII if the image generation fails, without accessibility attributes.
+**Action:** Always wrap visual ASCII art in a container with `aria-hidden="true"` to prevent screen readers from reading it, and ensure dynamically returned HTML strings always include a proper `<!doctype html>` along with an English `lang="en"` attribute and viewport meta tag.
