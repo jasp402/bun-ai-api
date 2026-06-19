@@ -165,17 +165,28 @@ export function renderWhatsAppQrHtml() {
   }
 
   const imageTag = runtimeState.qrCode
-    ? `<img src="data:image/png;base64,${runtimeState.qrCode}" alt="WhatsApp QR" style="max-width: 360px; width: 100%;" />`
+    ? `<img src="data:image/png;base64,${runtimeState.qrCode}" alt="WhatsApp QR Code" style="max-width: 360px; width: 100%; height: auto;" />`
     : "<p>No image QR available.</p>";
 
   const ascii = runtimeState.asciiQR
-    ? `<pre style="white-space: pre-wrap; font-size: 10px; line-height: 1;">${escapeHtml(runtimeState.asciiQR)}</pre>`
+    ? `<pre aria-hidden="true" style="white-space: pre-wrap; font-size: 10px; line-height: 1;">${escapeHtml(runtimeState.asciiQR)}</pre>`
     : "";
 
-  return new Response(
-    `<!doctype html><html><body style="font-family: sans-serif; padding: 24px;"><h1>WhatsApp QR</h1>${imageTag}${ascii}</body></html>`,
-    { headers: { "Content-Type": "text/html; charset=utf-8" } }
-  );
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>WhatsApp QR Code</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: sans-serif; padding: 24px;">
+  <h1>WhatsApp QR Code</h1>
+  ${imageTag}
+  ${ascii}
+</body>
+</html>`;
+
+  return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
 
 export async function sendWhatsAppMessage(to: string, text: string) {

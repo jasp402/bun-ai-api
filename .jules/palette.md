@@ -1,0 +1,3 @@
+## 2024-06-19 - Proper HTML Boilerplate and ASCII Art Accessibility
+**Learning:** Screen readers will attempt to read ASCII art character-by-character, creating a terrible user experience. Additionally, dynamically generated HTML API strings often lack basic boilerplate (like viewport meta tags and language attributes), which breaks mobile rendering and base accessibility.
+**Action:** Always wrap visual ASCII art in elements with `aria-hidden="true"`. Ensure all dynamically returned HTML strings include full boilerplate (`<head>`, `<title>`, `<meta name="viewport">`, `lang`) before returning them to the client.
