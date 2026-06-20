@@ -1,0 +1,3 @@
+## 2026-06-20 - WhatsApp QR Accessibility Improvement
+**Learning:** Screen readers attempt to read ASCII art character-by-character, leading to a confusing and poor user experience. Additionally, dynamically generated HTML strings returned directly from APIs often lack necessary structural tags, causing suboptimal rendering and accessibility issues on mobile devices.
+**Action:** Always add `aria-hidden="true"` to `<pre>` tags or blocks containing visual ASCII art. Furthermore, when returning dynamically generated HTML strings from an API, always include proper HTML boilerplate (`<head>`, `<title>`, `<meta name="viewport">`, and `lang` attribute) to ensure basic accessibility and correct mobile rendering.
