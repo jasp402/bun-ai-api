@@ -1,0 +1,3 @@
+## 2024-05-18 - Improve accessibility of generated WhatsApp QR interface
+**Learning:** API endpoints returning dynamic HTML strings (like the WhatsApp QR code endpoint) must include proper HTML boilerplate (`<html lang="...">`, `<head>`, `<title>`, `<meta name="viewport">`) to ensure correct layout and accessibility, especially on mobile devices. Furthermore, screen readers try to read ASCII art character by character, which ruins the experience.
+**Action:** Always wrap visual ASCII art in a `<pre aria-hidden="true">` tag and ensure dynamically constructed HTML strings contain full boilerplate.
