@@ -1,0 +1,3 @@
+## 2024-11-23 - Dynamic HTML Accessibility and ASCII Art
+**Learning:** Returning raw HTML fragments from API endpoints without proper document boilerplate (`<!DOCTYPE html>`, `<html>`, `<head>`, `<title>`, `<meta name="viewport">`) leads to poor accessibility, lack of language context (`lang="en"`), and non-responsive mobile rendering. Additionally, ASCII art (such as generated QR codes) within `<pre>` tags causes severe screen reader degradation as they attempt to read it character-by-character.
+**Action:** Always wrap dynamically generated HTML strings from APIs in a complete HTML5 document structure. Ensure any visual ASCII art uses `aria-hidden="true"` to hide it from assistive technologies while retaining its visual presentation.
