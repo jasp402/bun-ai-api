@@ -1,0 +1,3 @@
+## 2025-06-25 - Prevent Screen Readers from Announcing ASCII Art
+**Learning:** Screen readers will attempt to read out ASCII art character by character, leading to a terrible and confusing user experience. The WhatsApp ASCII QR code pre tag was affected by this.
+**Action:** Always use `aria-hidden="true"` on `<pre>` tags or similar blocks that contain purely visual ASCII art to ensure screen readers ignore them and do not negatively impact accessibility.
