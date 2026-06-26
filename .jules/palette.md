@@ -1,0 +1,3 @@
+## 2024-06-26 - WhatsApp QR Endpoint Accessibility
+**Learning:** Screen readers will attempt to read ASCII art (like terminal-rendered QR codes) character-by-character, which creates a terrible user experience. Additionally, dynamically generated HTML strings returned by APIs must include proper boilerplate (`<head>`, `<title>`, `<html lang="...">`, `<meta name="viewport">`) to ensure baseline accessibility and proper rendering on mobile devices, even if they are simple single-purpose pages.
+**Action:** Always add `aria-hidden="true"` to `<pre>` tags or blocks containing visual ASCII art. Always wrap dynamically generated HTML API responses in standard, accessible HTML boilerplate to ensure basic mobile and screen reader support.
