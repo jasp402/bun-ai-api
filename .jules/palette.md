@@ -1,0 +1,3 @@
+## 2026-06-27 - Accessible Dynamically Generated HTML
+**Learning:** Screen readers will attempt to read ASCII art character-by-character, leading to a terrible user experience. Also, dynamically generated HTML strings from APIs often miss basic boilerplate, breaking accessibility and mobile rendering.
+**Action:** Always use `aria-hidden="true"` on `<pre>` tags containing visual ASCII art. Always include proper HTML boilerplate (`<html lang="en">`, `<head>`, `<title>`, `<meta name="viewport">`) when returning dynamically generated HTML strings from APIs.
