@@ -1,0 +1,3 @@
+## 2024-06-29 - Improve Accessibility of API-Generated UI for WhatsApp QR
+**Learning:** Screen readers attempt to read ASCII art character-by-character, leading to a poor user experience. Also, API-generated HTML string responses still require proper HTML boilerplate (like `<head>`, `lang`, and viewport meta tags) to ensure proper mobile scaling, correct screen reader language context, and basic accessibility standards.
+**Action:** Always add `aria-hidden="true"` to visual ASCII art (`<pre>` tags). Ensure any dynamically generated HTML response includes a complete and valid document structure, taking care that TypeScript template literal variables like `${myVar}` are safely unescaped so they evaluate rather than render literally.
