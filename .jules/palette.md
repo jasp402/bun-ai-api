@@ -1,0 +1,3 @@
+## 2024-07-01 - Hide ASCII Art from Screen Readers
+**Learning:** Screen readers will attempt to read ASCII art character-by-character, creating a terrible user experience.
+**Action:** Always use `aria-hidden="true"` on `<pre>` tags or blocks containing visual ASCII art (like generated QR codes) to prevent this negative user experience. Ensure dynamically generated HTML string responses contain standard boilerplate (`<head>`, `<title>`, `<meta name="viewport">`, `lang`) for baseline accessibility and mobile rendering.
