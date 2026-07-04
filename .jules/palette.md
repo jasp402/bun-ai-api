@@ -1,0 +1,3 @@
+## 2026-07-04 - Accessible HTML boilerplate for dynamic API endpoints
+**Learning:** When generating standalone HTML directly from API endpoints (like a QR code visualizer), missing standard boilerplate (`<html lang="...">`, `<title>`, `<meta name="viewport">`) harms accessibility, mobile rendering, and context for screen readers. Furthermore, raw ASCII art (`<pre>` tags without specific ARIA attributes) forces screen readers to read out every single text character, destroying user experience.
+**Action:** Always wrap dynamic HTML strings returned by APIs with a proper HTML shell (including `lang`, `<head>`, `<title>`, and `viewport`). For ASCII art, add `aria-hidden="true"` to hide the visual noise from assistive technologies.
