@@ -1,0 +1,3 @@
+## 2024-07-05 - Screen Reader Issues with ASCII Art and API HTML Responses
+**Learning:** Screen readers will attempt to read ASCII art character-by-character, creating a terrible user experience. Additionally, returning raw HTML strings from APIs without proper boilerplate (like `<head>`, `<title>`, `<meta name="viewport">`, and `lang` attribute) breaks mobile rendering and accessibility.
+**Action:** Always use `aria-hidden="true"` on `<pre>` tags or blocks containing visual ASCII art. Also, when returning dynamically generated HTML strings from an API, always wrap them in standard HTML boilerplate to ensure basic accessibility and responsiveness.
