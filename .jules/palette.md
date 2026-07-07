@@ -1,0 +1,3 @@
+## 2024-07-07 - Accessibility for ASCII Art and API HTML Boilerplate
+**Learning:** Screen readers will attempt to read ASCII art (like generated QR codes) character-by-character, creating a poor user experience. Also, dynamically generated HTML strings from API endpoints (like `/api/v1/whatsapp/qr`) often lack proper HTML boilerplate (`<head>`, `<title>`, `<meta name="viewport">`, `lang` attribute) which hurts accessibility and mobile rendering.
+**Action:** Always add `aria-hidden="true"` to `<pre>` tags or blocks containing visual ASCII art. Always include proper HTML boilerplate when returning dynamically generated HTML strings from the API.
